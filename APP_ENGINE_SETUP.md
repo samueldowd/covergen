@@ -17,8 +17,8 @@ The `app.yaml` file is the core of your App Engine deployment. It tells App Engi
     env: standard
     ```
 
-3.  **Add environment variables.**
-    This is where you'll define your database credentials. App Engine will securely inject these variables into your application at runtime. You will need to get the actual values for these from your PostgreSQL instance, which will be covered in Section 3. For now, add the following structure:
+3.  **Reference Secret Manager variables.**
+    Instead of putting the password directly in `app.yaml`, you'll reference the secret's resource path. Your `app.yaml` will now look like this:
 
     ```yaml
     runtime: nodejs
@@ -27,13 +27,13 @@ The `app.yaml` file is the core of your App Engine deployment. It tells App Engi
     env_variables:
       # Database connection string
       DB_USER: "your-db-user"
-      DB_PASS: "your-db-password"
       DB_NAME: "your-db-name"
       INSTANCE_CONNECTION_NAME: "your-project-id:your-region:your-instance-id"
       NODE_ENV: "production"
+      DB_PASSWORD: "projects/[PROJECT_ID]/secrets/DB_PASSWORD/versions/latest"
     ```
-    * **Note**: I've added `NODE_ENV: "production"`. This is a standard variable that tells your app it's running in a production environment, which you can use in your code to apply different logic.
-    * **Common Trap**: Make sure the indentation is exactly as shown. YAML is very sensitive to whitespace. An incorrect indentation will cause a deployment error.
+    * **Note**: We're using a special syntax here. App Engine will automatically detect that `DB_PASSWORD` is a Secret Manager URI and retrieve the latest version of your secret during deployment.
+    * **Common Trap**: Make sure the indentation is exactly as shown. YAML is sensitive to whitespace.
 
 #### Part 2: Modifying Your Node.js Code
 
@@ -79,7 +79,7 @@ Your Node.js Express application needs to be configured to work with App Engine'
     
     const client = new Client({
       user: process.env.DB_USER,
-      password: process.env.DB_PASS,
+      password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME,
       // Use the Unix socket path for production (App Engine)
       // or a local host for development (via the Cloud SQL Auth Proxy)
@@ -153,36 +153,36 @@ You'll create a dedicated user and database for your application to ensure secur
     It's best practice not to use the `postgres` superuser for your application. Create a new user with a strong password.
 
     ```sql
-    CREATE USER myappuser WITH ENCRYPTED PASSWORD 'a-very-strong-password';
+    CREATE USER covergen_user WITH ENCRYPTED PASSWORD 'a-very-strong-password';
     ```
 
 2.  **Create the database.**
     Create a new database that your application will use.
 
     ```sql
-    CREATE DATABASE myappdb;
+    CREATE DATABASE covergen;
     ```
 
 3.  **Grant privileges to the user.**
     This step gives your new user the necessary permissions to read, write, and manage data within the new database. `GRANT ALL PRIVILEGES` is suitable for a simple personal app.
 
     ```sql
-    GRANT ALL PRIVILEGES ON DATABASE myappdb TO myappuser;
+    GRANT ALL PRIVILEGES ON DATABASE covergen TO covergen_user;
     ```
 
 4.  **Connect to the new database as the new user.**
     Exit the `psql` session by typing `\q`. Then, reconnect using the new user and database.
 
     ```bash
-    psql "host=127.0.0.1 user=myappuser dbname=myappdb sslmode=disable"
+    psql "host=127.0.0.1 user=covergen_user dbname=covergen sslmode=disable"
     ```
-    * **Verification**: Your prompt should now show the new database name: `myappdb=>`. This confirms the user, database, and connection are all working.
+    * **Verification**: Your prompt should now show the new database name: `covergen=>`. This confirms the user, database, and connection are all working.
 
 5.  **Create the table and columns.**
-    Now you can create the table for your data. Replace `your_table_name` and the column definitions with your specific needs.
+    Now you can create the table for your data. Replace `cover_letters` and the column definitions with your specific needs.
 
     ```sql
-    CREATE TABLE your_table_name (
+    CREATE TABLE cover_letters (
       id SERIAL PRIMARY KEY,
       field1 VARCHAR(255),
       field2 INT,
@@ -192,7 +192,7 @@ You'll create a dedicated user and database for your application to ensure secur
     );
     ```
 
-    * **Verification**: Use the `\dt` command in the `psql` terminal to list all tables. You should see `your_table_name` in the list.
+    * **Verification**: Use the `\dt` command in the `psql` terminal to list all tables. You should see `cover_letters` in the list.
 
 6.  **Add a `psql` command to exit.**
 
@@ -204,126 +204,105 @@ You'll create a dedicated user and database for your application to ensure secur
 
 ### Section 3: Setting up Google Cloud for Deployment
 
-This section covers creating the App Engine application, configuring IAM permissions, and setting up the automated deployment trigger. **This is dependent on the completion of Section 1 and Part 1 of Section 2.**
+This section has been updated to include the necessary steps for Secret Manager.
 
-#### Part 1: Creating Your App Engine Application
+#### Part 1: Creating Your App Engine Application (No Change)
 
 1.  **Navigate to the App Engine Dashboard.**
     In the Google Cloud console, search for "App Engine" and click on it.
 
 2.  **Create an application.**
-    * If this is your first time, you'll be prompted to create an application.
     * Click **Create application**.
-    * Select a region. **Look for a region that is geographically close to your users and, most importantly, is the same region as your PostgreSQL instance.** This minimizes network latency and can reduce costs.
+    * Select a region that's the same as your PostgreSQL instance.
     * Click **Create**.
 
-    * **Common Trap**: Choosing a different region from your PostgreSQL instance can lead to increased latency and potential network egress costs if data is transferred between regions.
+#### Part 2: Configuring IAM Permissions (Updated)
 
-#### Part 2: Configuring IAM Permissions
-
-Your App Engine application needs permission to connect to your Cloud SQL instance. This is a crucial security step.
+Your App Engine service account needs permissions to access both your database and Secret Manager.
 
 1.  **Navigate to IAM.**
-    In the Google Cloud console, search for and go to the **IAM & Admin > IAM** page.
+    In the Google Cloud console, go to **IAM & Admin > IAM**.
 
 2.  **Find the App Engine default service account.**
-    Look for a service account named `[your-project-id]@appspot.gserviceaccount.com`. This is the default service account for your App Engine application.
+    Look for a service account named `[your-project-id]@appspot.gserviceaccount.com`.
 
-3.  **Grant the necessary role.**
+3.  **Grant the necessary roles.**
+    You'll now add two roles to this service account:
     * Click the pencil icon to edit the service account's permissions.
     * Click **Add another role**.
-    * Search for "Cloud SQL Client" and select the `Cloud SQL Client` role (`roles/cloudsql.client`).
+    * Search for "Cloud SQL Client" and select the `Cloud SQL Client` role.
+    * Click **Add another role**.
+    * Search for "Secret Manager Secret Accessor" and select the `Secret Manager Secret Accessor` role (`roles/secretmanager.secretAccessor`).
     * Click **Save**.
 
-    * **Verification**: After saving, you should see the "Cloud SQL Client" role listed for the App Engine default service account. This role grants the essential `cloudsql.instances.connect` permission.
-    * **Common Issue**: Failing to add this role is a very common reason for database connection errors. Your application will fail to authenticate with the database, and you'll see "permission denied" errors in your logs.
+    * **Verification**: After saving, you should see both roles listed for the App Engine default service account.
+    * **Common Issue**: Failing to add the "Secret Manager Secret Accessor" role will prevent App Engine from retrieving the password, causing your deployment to fail with a "permission denied" error.
 
-#### Part 3: Automating Deployment with Cloud Build
+#### Part 3: Create the Secret in Secret Manager (New)
 
-This part sets up a continuous deployment pipeline so that every time you merge code to `main` on GitHub, your App Engine application automatically updates. **This is dependent on the completion of Section 1 and Part 1 of Section 2.**
+Before you can deploy, you need to create the secret that your application will reference.
+
+1.  **Enable the Secret Manager API.**
+    Go to the [Secret Manager API page](https://console.cloud.google.com/apis/library/secretmanager.googleapis.com) and click **Enable**. 
+
+2.  **Go to Secret Manager.**
+    In the Google Cloud console, search for and go to **Security > Secret Manager**.
+
+3.  **Create a new secret.**
+    * Click **Create secret**.
+    * For the **Name**, enter a descriptive name, like `DB_PASSWORD`. This is the `[SECRET_ID]` you'll use in your `app.yaml`.
+    * For the **Secret value**, paste your database password.
+    * Leave all other options as default.
+    * Click **Create secret**.
+
+    * **Verification**: You should now see a new secret in your list. When you click on it, you'll see details about its version.
+
+#### Part 4: Automating Deployment with Cloud Build
+
+This part remains the same, as the pipeline still pulls from GitHub and deploys to App Engine.
 
 1.  **Go to the Cloud Build Triggers page.**
-    In the Google Cloud console, search for and go to **Cloud Build > Triggers**.
-
 2.  **Create a new trigger.**
-    * Click **Create trigger**.
-    * Give your trigger a name (e.g., `deploy-app-engine-from-github`).
-    * For the **Region**, select the same region as your App Engine application.
-    * Select **Source** as **GitHub**. You will be prompted to connect your GitHub account if you haven't already.
-    * Select your repository.
-    * Set the **Event** to `Push to a branch`.
-    * For the **Branch**, use a regex like `^main$` to ensure it only triggers on the `main` branch.
-    * Under **Configuration**, choose `Autodetect`. Cloud Build will automatically find and use the `app.yaml` file you created.
+    * Configure the trigger to watch your `main` branch.
+    * Under **Configuration**, select `Autodetect`.
     * Click **Create**.
-
 3.  **Manual first deployment.**
-    While the trigger is now active, you'll need to manually run it for the first time to get your application deployed.
-    * On the **Triggers** page, find the trigger you just created.
-    * Click the **Run** button to the far right.
+    * On the **Triggers** page, click the **Run** button to the far right.
     * Select the `main` branch and click **Run trigger**.
 
-    * **Verification**: Go to the **Cloud Build > History** page. You should see a new build running. After a few minutes, its status should change to `Success`. Then, go to the App Engine Dashboard and you should see a new version of your service deployed.
-    * **Common Trap**: If the build fails, click on the build in the history to see the build logs. The logs will contain detailed error messages that will help you diagnose the issue, such as an incorrectly formatted `app.yaml` file, a missing dependency, or a misconfigured `package.json`.
+    * **Verification**: Go to the Cloud Build History. You should see a new build running. If successful, your application should be live and connected to the database.
 
 ---
 
-### Section 4: Connecting Your App to the Database
+### Section 4: Connecting Your App to the Database (Updated)
 
-Now that App Engine is deployed, you need to set the database credentials securely. **This is dependent on the completion of all of Section 2.**
+This section is updated to reflect that the password is no longer directly in `app.yaml`.
 
 1.  **Get the instance connection name.**
     * In the Google Cloud console, go to **Cloud SQL**.
-    * Click on your PostgreSQL instance.
-    * On the **Overview** page, look for the **Connect to this instance** section. The value next to **Instance connection name** is what you need. It will be in the format `project-id:region:instance-id`. Copy this value.
+    * Click on your PostgreSQL instance and copy the **Instance connection name**.
 
 2.  **Get database credentials.**
-    * On the left-hand navigation, click **Databases** to get your database name.
-    * Click **Users** to find the user you created for the application and its password.
+    * Get your database name and user.
 
-3.  **Update the `app.yaml` environment variables.**
-    * Go back to your local `app.yaml` file.
-    * Replace the placeholder values you put in before with the real values you just retrieved.
-    * **Do not include the quotes** around the values.
-
-    ```yaml
-    # Example with real values
-    env_variables:
-      DB_USER: "myappuser"
-      DB_PASS: "a-very-strong-password"
-      DB_NAME: "myappdb"
-      INSTANCE_CONNECTION_NAME: "my-gcp-project:us-central1:my-postgres-instance"
-      NODE_ENV: "production"
-    ```
+3.  **Update the `app.yaml` menvironment variables.**
+    * Update your local `app.yaml` with the correct values for `DB_USER`, `DB_NAME`, and `INSTANCE_CONNECTION_NAME`. The `DB_PASSWORD` variable should reference the secret you created in Secret Manager.
 
 4.  **Commit and push the changes.**
-    * Commit the updated `app.yaml` file to your GitHub repository and push it to the `main` branch.
-    * Because of the trigger you created in Section 2, this will automatically start a new deployment.
+    * Because of the trigger, this will automatically start a new deployment.
 
-    * **Verification**: Go to the Cloud Build History. You should see a new build running. Once it's complete, your application should now be able to connect to the database. Check your application's public URL to confirm it's working as expected. You can also view the App Engine logs for your service to see if the connection was successful.
+    * **Verification**: Check the App Engine logs for a successful connection message.
 
 ---
 
-### Section 5: Mapping a Custom Domain
+### Section 5: Mapping a Custom Domain (No Change)
 
-This final section covers how to point your custom subdomain to your App Engine application. **This is dependent on the successful deployment of your application.**
+This section remains the same as previously provided.
 
 1.  **Navigate to Custom Domains.**
-    In the App Engine dashboard, on the left-hand navigation, click **Settings > Custom Domains**.
-
 2.  **Add your custom domain.**
-    * Click **Add a custom domain**.
-    * If you haven't verified ownership of your domain with Google, you'll be prompted to do so. Follow the steps provided. You will need to add a DNS record to your domain registrar (e.g., GoDaddy, Namecheap, etc.) to prove ownership.
-    * Once verified, select your domain from the list.
-    * On the next screen, enter your subdomain (e.g., `app.samueldowd.com`).
-    * Click **Save mappings**.
-
+    * Add your subdomain (`app.samueldowd.com`).
 3.  **Update your DNS records.**
-    * App Engine will provide you with the DNS records you need to add to your domain registrar. You will likely see one or more **A** or **CNAME** records.
-    * Go to your domain registrar's DNS management page.
-    * Add the records exactly as provided by App Engine.
-
+    * Add the required A/CNAME records to your domain registrar.
 4.  **Wait and verify.**
-    * DNS changes can take anywhere from a few minutes to 48 hours to propagate across the internet, though it's usually much faster.
-    * **Verification**: Once you believe the changes have propagated, type your custom URL (e.g., `https://app.samueldowd.com`) into your browser. It should now successfully load your application.
-
-    * **Common Trap**: Make sure the records are copied exactly and are not mixed up with other records you may have. If you're using a CNAME record, ensure the "host" or "name" field is set correctly for your subdomain (e.g., `app`).
+    * Check your custom URL to ensure your application loads.
