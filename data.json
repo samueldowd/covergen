@@ -1,0 +1,41 @@
+[
+  {
+    "id": "1",
+    "filename": "cover_letter_harvard.pdf",
+    "greeting": "Dear Applied Social Media Lab,",
+    "body": "As a former Sr. Technical Product Owner at Harvard University, I am excited by the opportunity to return and contribute to the mission of the Applied Social Media Lab. My experience in implementing enterprise-wide platforms at Harvard and leading a strategic data platform at McGraw-Hill Education has equipped me with the skills to drive change and manage complex initiatives.<br/><br/>I am particularly drawn to your mission of building software that fosters healthier human connections. My passion for creating compassionate user experiences and my background in educational technology have given me a unique perspective on using software for positive change. I am confident that my ability to bridge the gap between technical teams and stakeholders, combined with a systems-thinking mindset, would be an asset to your team. I am eager to apply my skills to your ambitious projects and to help find solutions to some of the toughest social and technical problems facing social media today.",
+    "salutation": "Sincerely,",
+    "color": "#63B377",
+    "job-title": "Sr. Technical Product Owner",
+    "company": "Harvard University",
+    "date": "2024-07-21T10:00:00Z",
+    "status": "Submitted",
+    "notes": "Follow up next week."
+  },
+  {
+    "id": "2",
+    "filename": "cover_letter_google.pdf",
+    "greeting": "Dear Hiring Team at Google,",
+    "body": "I am writing to express my keen interest in the Software Engineer position at Google. With over 5 years of experience in developing scalable web applications and a proven track record of delivering high-quality software, I am confident that I possess the skills and expertise you are seeking.<br/><br/>My work at previous companies involved building robust backend systems and creating intuitive user interfaces, which aligns perfectly with Google's commitment to innovation and user-centric design. I am deeply passionate about tackling complex problems and am eager to contribute to Google's groundbreaking projects.",
+    "salutation": "Best regards,",
+    "color": "#4285F4",
+    "job-title": "Software Engineer",
+    "company": "Google",
+    "date": "2024-07-20T14:30:00Z",
+    "status": "In Progress",
+    "notes": "Finalizing resume."
+  },
+    {
+    "id": "3",
+    "filename": "cover_letter_microsoft.pdf",
+    "greeting": "Dear Microsoft Recruiting Team,",
+    "body": "It is with great enthusiasm that I submit my application for the Cloud Solutions Architect role at Microsoft. My extensive experience in cloud infrastructure, particularly with Azure, and my ability to design and implement complex, secure, and scalable cloud solutions make me a strong candidate for this position.<br/><br/>I have successfully led multiple cloud migration projects, resulting in significant cost savings and improved performance for my clients. I am excited by the prospect of bringing my skills to Microsoft and contributing to the continued success of the Azure platform.",
+    "salutation": "Respectfully,",
+    "color": "#F25022",
+    "job-title": "Cloud Solutions Architect",
+    "company": "Microsoft",
+    "date": "2024-07-18T09:00:00Z",
+    "status": "Interviewing",
+    "notes": "Second round interview scheduled."
+  }
+]

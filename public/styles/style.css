@@ -1,0 +1,118 @@
+/* General Styles */
+body {
+    font-family: sans-serif;
+    margin: 20px;
+    background-color: #f4f4f4;
+    color: #333;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+/* Table Styles */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+
+th, td {
+    padding: 12px;
+    border: 1px solid #ddd;
+    text-align: left;
+}
+
+th {
+    background-color: #f2f2f2;
+}
+
+tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+tr:hover {
+    background-color: #f1f1f1;
+}
+
+a {
+    color: #007bff;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+/* Cover Letter Styles */
+.cover-letter-container {
+    max-width: 8.5in;
+    min-height: 11in;
+    margin: auto;
+    background: white;
+    padding: 1in;
+    box-sizing: border-box;
+    font-family: 'Lora', serif;
+    font-size: 12pt;
+    line-height: 1.5;
+}
+
+#top-line {
+    height: 10px;
+    margin-bottom: 40px;
+}
+
+.address-block {
+    margin-bottom: 30px;
+}
+
+.date-block {
+    text-align: right;
+    margin-bottom: 30px;
+}
+
+#greeting, #body, #salutation {
+    margin-bottom: 20px;
+}
+
+#signature {
+    font-weight: bold;
+}
+
+#print-button {
+    margin-top: 20px;
+    padding: 10px 20px;
+    cursor: pointer;
+}
+
+p {
+    margin-bottom: 1em;
+}
+
+strong {
+    font-weight: bold;
+}
+
+em {
+    font-style: italic;
+}
+
+/* Print Styles */
+@media print {
+    .no-print {
+        display: none !important;
+    }
+
+    body {
+        margin: 0;
+        background-color: white;
+    }
+
+    .cover-letter-container {
+        box-shadow: none;
+        margin: 0;
+        padding: 1in;
+        max-width: 100%;
+    }
+}
