@@ -1,16 +1,6 @@
 // Load environment variables from .env file
 require('dotenv').config();
 
-// --- ADD THESE LINES FOR DEBUGGING ---
-console.log("--- Loading .env variables ---");
-console.log("DB_USER:", process.env.DB_USER);
-console.log("DB_HOST:", process.env.DB_HOST);
-console.log("DB_DATABASE:", process.env.DB_DATABASE);
-console.log("DB_PORT:", process.env.DB_PORT);
-// For security, it's better not to log the password, but check it's not undefined.
-console.log("DB_PASSWORD is set:", !!process.env.DB_PASSWORD); 
-console.log("----------------------------");
-
 const express = require('express');
 const path = require('path');
 const { Pool } = require('pg');
@@ -18,14 +8,41 @@ const { Pool } = require('pg');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Determine if we are running in a production environment (on App Engine)
+const isProduction = process.env.NODE_ENV === 'production';
+
+// Log the environment for debugging
+console.log(`Application is running in ${isProduction ? 'Production' : 'Development'} environment.`);
+
 // Set up PostgreSQL connection pool
-const pool = new Pool({
-    user: process.env.DB_USER,
-    host: process.env.DB_HOST,
-    database: process.env.DB_DATABASE,
-    password: process.env.DB_PASSWORD,
-    port: process.env.DB_PORT,
-});
+let poolConfig;
+
+if (isProduction) {
+    // Configuration for App Engine using a Unix socket
+    poolConfig = {
+        user: process.env.DB_USER,
+        password: process.env.DB_PASSWORD,
+        database: process.env.DB_DATABASE,
+        // The host should be the Unix socket path, which is located
+        // at /cloudsql/[INSTANCE_CONNECTION_NAME]
+        host: `/cloudsql/${process.env.INSTANCE_CONNECTION_NAME}`,
+        port: process.env.DB_PORT
+    };
+} else {
+    // Configuration for local development
+    poolConfig = {
+        user: process.env.DB_USER,
+        host: process.env.DB_HOST,
+        database: process.env.DB_DATABASE,
+        password: process.env.DB_PASSWORD,
+        port: process.env.DB_PORT,
+    };
+}
+
+// Log the connection configuration for debugging
+console.log('Using pool configuration:', poolConfig);
+
+const pool = new Pool(poolConfig);
 
 // Connect to the database
 pool.connect()
