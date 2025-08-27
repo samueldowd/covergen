@@ -7,5 +7,5 @@ env_variables:
   DB_DATABASE: "covergen"
   INSTANCE_CONNECTION_NAME: "cover-letter-gen-a8513:us-central1:covergen-db"
   NODE_ENV: "production"
-  DB_PASSWORD: "projects/1019035577810/secrets/DB_PASSWORD/versions/1"
+  DB_PASSWORD: "projects/1019035577810/secrets/DB_PASSWORD/versions/2"
   DB_PORT: "5432"
