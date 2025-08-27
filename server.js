@@ -28,7 +28,7 @@ const pool = new Pool({
 });
 
 // Connect to the database
-client.connect()
+pool.connect()
   .then(() => console.log('Connected to PostgreSQL database'))
   .catch(err => console.error('Connection error', err.stack));
 
@@ -38,10 +38,10 @@ app.use(express.static(path.join(__dirname, 'public'))); // Serve static files
 
 // API Endpoints
 
-// GET all job applications
-app.get('/api/applications', async (req, res) => {
+// GET all job jobs
+app.get('/api/jobs', async (req, res) => {
     try {
-        const result = await pool.query('SELECT * FROM applications ORDER BY date DESC');
+        const result = await pool.query('SELECT * FROM jobs ORDER BY date DESC');
         res.json(result.rows);
     } catch (err) {
         console.error(err);
@@ -50,10 +50,10 @@ app.get('/api/applications', async (req, res) => {
 });
 
 // GET a single job application by ID
-app.get('/api/applications/:id', async (req, res) => {
+app.get('/api/jobs/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        const result = await pool.query('SELECT * FROM applications WHERE id = $1', [id]);
+        const result = await pool.query('SELECT * FROM jobs WHERE id = $1', [id]);
         if (result.rows.length === 0) {
             return res.status(404).send('Application not found');
         }
@@ -65,7 +65,7 @@ app.get('/api/applications/:id', async (req, res) => {
 });
 
 // UPDATE the status of an application
-app.put('/api/applications/:id', async (req, res) => {
+app.put('/api/jobs/:id', async (req, res) => {
     try {
         const { id } = req.params;
         const { status } = req.body;
@@ -73,7 +73,7 @@ app.put('/api/applications/:id', async (req, res) => {
             return res.status(400).send('Status is required');
         }
         const result = await pool.query(
-            'UPDATE applications SET status = $1 WHERE id = $2 RETURNING *',
+            'UPDATE jobs SET status = $1 WHERE id = $2 RETURNING *',
             [status, id]
         );
         if (result.rows.length === 0) {

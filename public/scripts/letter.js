@@ -26,7 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function loadLetterData(docId) {
     try {
-        const response = await fetch(`/api/applications/${docId}`);
+        const response = await fetch(`/api/jobs/${docId}`);
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }

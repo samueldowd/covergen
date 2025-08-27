@@ -4,14 +4,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function loadApplications() {
     try {
-        const response = await fetch('/api/applications');
+        const response = await fetch('/api/jobs');
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
-        const applications = await response.json();
-        const tableBody = document.getElementById('applications-table-body');
+        const jobs = await response.json();
+        const tableBody = document.getElementById('jobs-table-body');
         tableBody.innerHTML = ''; // Clear existing rows
-        applications.forEach(appData => {
+        jobs.forEach(appData => {
             const row = createTableRow(appData.id, appData);
             tableBody.appendChild(row);
         });
@@ -26,7 +26,7 @@ function loadFallbackData() {
     fetch('/data.json')
         .then(response => response.json())
         .then(data => {
-            const tableBody = document.getElementById('applications-table-body');
+            const tableBody = document.getElementById('jobs-table-body');
             tableBody.innerHTML = '';
             data.forEach(appData => {
                 // Note: Fallback data doesn't support status updates
@@ -48,7 +48,7 @@ function createTableRow(id, data, isUpdateEnabled = true) {
     companyCell.appendChild(companyLink);
 
     const titleCell = document.createElement('td');
-    titleCell.textContent = data['job-title'];
+    titleCell.textContent = data['job_title'];
 
     const dateCell = document.createElement('td');
     const date = new Date(data.date);
@@ -90,7 +90,7 @@ function createTableRow(id, data, isUpdateEnabled = true) {
 
 async function updateStatus(docId, newStatus) {
     try {
-        const response = await fetch(`/api/applications/${docId}`, {
+        const response = await fetch(`/api/jobs/${docId}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
