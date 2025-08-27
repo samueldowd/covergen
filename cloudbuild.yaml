@@ -11,3 +11,6 @@ steps:
   # This command automatically uses the 'app.yaml' file in the project's root directory.
   - name: 'gcr.io/cloud-builders/gcloud'
     args: ['app', 'deploy']
+
+# This specifies a logs bucket, which is required if a custom service account is used.
+logsBucket: 'gs://covergen-cloud-build-logs'
