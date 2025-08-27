@@ -1,0 +1,13 @@
+# This file specifies the steps to deploy the application to Google App Engine using Cloud Build.
+
+steps:
+  # Step 1: Install Node.js dependencies.
+  # The 'gcr.io/cloud-builders/npm' image is used to run the 'npm install' command.
+  - name: 'gcr.io/cloud-builders/npm'
+    args: ['install']
+    
+  # Step 2: Deploy the application to Google App Engine.
+  # The 'gcr.io/cloud-builders/gcloud' image is used to run the 'gcloud app deploy' command.
+  # This command automatically uses the 'app.yaml' file in the project's root directory.
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args: ['app', 'deploy']
