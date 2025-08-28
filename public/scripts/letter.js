@@ -73,7 +73,7 @@ function loadFallbackLetterData(docId) {
 }
 
 function populateLetter(data) {
-    console.log(color is data.color);
+    console.log("color is " + data.color);
     document.getElementById('greeting').innerHTML = data.greeting;
     document.getElementById('body').innerHTML = data.body;
     document.getElementById('salutation').innerHTML = data.salutation;
