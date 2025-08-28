@@ -5,10 +5,27 @@ document.addEventListener('DOMContentLoaded', () => {
         loadLetterData(docId);
     }
 
-    const printButton = document.getElementById('print-button');
-    if (printButton) {
-        printButton.addEventListener('click', () => {
-            window.print();
+    const downloadButton = document.getElementById('download-button');
+    if (downloadButton) {
+        downloadButton.addEventListener('click', () => {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            const letterContainer = document.querySelector('.cover-letter-container');
+            
+            // Temporarily hide the button to avoid it appearing in the PDF
+            downloadButton.style.display = 'none';
+
+            doc.html(letterContainer, {
+                callback: function (doc) {
+                    doc.save('cover-letter.pdf');
+                    // Show the button again
+                    downloadButton.style.display = 'block';
+                },
+                x: 15,
+                y: 15,
+                width: 170, //target width in the PDF document
+                windowWidth: 650 //window width in CSS pixels
+            });
         });
     }
 

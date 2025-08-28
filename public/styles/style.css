@@ -4,6 +4,7 @@ body {
     margin: 20px;
     background-color: #f4f4f4;
     color: #333;
+    --dynamic-color: #63B377;
 }
 
 header {
@@ -56,11 +57,22 @@ a:hover {
     font-family: 'Lora', serif;
     font-size: 12pt;
     line-height: 1.5;
+    position: relative;
 }
 
 #top-line {
     height: 10px;
-    margin-bottom: 40px;
+    background-color: var(--dynamic-color);
+    position: absolute;
+    top: 40px;
+    left: 0;
+    right: 0;
+}
+
+.name {
+    font-size: 24pt;
+    font-weight: bold;
+    margin-bottom: 20px;
 }
 
 .address-block {
@@ -68,7 +80,8 @@ a:hover {
 }
 
 .date-block {
-    text-align: right;
+    text-align: left;
+    margin-top: 40px;
     margin-bottom: 30px;
 }
 
@@ -78,6 +91,7 @@ a:hover {
 
 #signature {
     font-weight: bold;
+    color: var(--dynamic-color);
 }
 
 #print-button {
